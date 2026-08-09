@@ -20,40 +20,30 @@ function art(g) {
     <path d="M0 330 Q180 220 350 330 T800 290 V420 H0Z"
           fill="#000" opacity=".5"/>
 
-    <text x="40" y="65"
-          fill="white"
-          opacity=".8"
-          font-family="Arial"
-          font-size="16"
+    <text x="40" y="65" fill="white"
+          font-family="Arial" font-size="16"
           font-weight="bold">
       ${g.genre.toUpperCase()} • ${g.year}
     </text>
 
-    <text x="40" y="285"
-          fill="white"
-          font-family="Arial"
-          font-size="82"
+    <text x="40" y="285" fill="white"
+          font-family="Arial" font-size="82"
           font-weight="900">
       ${g.mark}
     </text>
 
-    <text x="40" y="345"
-          fill="white"
-          font-family="Arial"
-          font-size="30"
+    <text x="40" y="345" fill="white"
+          font-family="Arial" font-size="30"
           font-weight="900">
       ${g.title}
     </text>
 
     <rect x="40" y="365"
-          width="210"
-          height="3"
+          width="210" height="3"
           fill="${g.accent}"/>
 
-    <text x="40" y="395"
-          fill="#ddd"
-          font-family="Arial"
-          font-size="11">
+    <text x="40" y="395" fill="#ddd"
+          font-family="Arial" font-size="11">
       GAMEVAULT ORIGINAL ARTWORK
     </text>
   </svg>`;
@@ -63,25 +53,43 @@ function art(g) {
 }
 
 
-function card(g) {
+function createCard(game) {
+
   return `
     <a class="card"
-       href="game.html?id=${g.id}"
-       style="--a:${g.accent}">
+       href="game.html?id=${game.id}"
+       style="--a:${game.accent}">
 
       <div class="pic">
-        <img src="${art(g)}" alt="${g.title}">
-        <button onclick="event.preventDefault()">♡</button>
+
+        <img
+          src="${art(game)}"
+          alt="${game.title}"
+        >
+
+        <button
+          onclick="event.preventDefault()">
+          ♡
+        </button>
+
       </div>
 
       <div>
-        <small>${g.genre} • ${g.year}</small>
 
-        <h3>${g.title}</h3>
+        <small>
+          ${game.genre} • ${game.year}
+        </small>
 
-        <span>★ ${g.rating}</span>
+        <h3>${game.title}</h3>
 
-        <i>${g.developer}</i>
+        <span>
+          ★ ${game.rating}
+        </span>
+
+        <i>
+          ${game.developer}
+        </i>
+
       </div>
 
     </a>
@@ -89,123 +97,214 @@ function card(g) {
 }
 
 
-function home() {
+function setupHome() {
 
-  const grid = document.querySelector("#grid");
+  const grid = document.getElementById("grid");
 
   if (!grid) return;
 
-  const search = document.querySelector("#search");
-  const genre = document.querySelector("#genre");
-  const sort = document.querySelector("#sort");
+
+  const search =
+    document.getElementById("search");
+
+  const genre =
+    document.getElementById("genre");
+
+  const sort =
+    document.getElementById("sort");
+
+
+  /* Fill genre menu */
+
+  const genres =
+    [...new Set(
+      GAMES.map(game => game.genre)
+    )];
+
 
   genre.innerHTML =
-    '<option>All Genres</option>' +
+    `<option value="All Genres">
+      All Genres
+    </option>` +
 
-    [...new Set(GAMES.map(g => g.genre))]
-      .map(g => `<option>${g}</option>`)
-      .join("");
+    genres.map(g =>
+      `<option value="${g}">
+        ${g}
+      </option>`
+    ).join("");
 
 
-  function render() {
+  /* Display games */
 
-    let q = search.value.toLowerCase();
+  function displayGames() {
 
-    let games = GAMES.filter(g =>
+    const query =
+      search.value.trim().toLowerCase();
 
-      (genre.value === "All Genres" ||
-       g.genre === genre.value)
+    const selectedGenre =
+      genre.value;
 
-      &&
 
-      (g.title + " " +
-       g.developer + " " +
-       g.genre)
-       .toLowerCase()
-       .includes(q)
+    let results =
+      GAMES.filter(game => {
 
-    );
+        const text =
+          (
+            game.title +
+            " " +
+            game.developer +
+            " " +
+            game.genre +
+            " " +
+            game.year
+          ).toLowerCase();
 
+
+        const matchesSearch =
+          text.includes(query);
+
+
+        const matchesGenre =
+          selectedGenre === "All Genres" ||
+          game.genre === selectedGenre;
+
+
+        return matchesSearch &&
+               matchesGenre;
+      });
+
+
+    /* Sorting */
 
     if (sort.value === "Rating") {
 
-      games.sort((a,b) =>
-        b.rating - a.rating
+      results.sort(
+        (a,b) => b.rating - a.rating
       );
 
+    } else if (sort.value === "A-Z") {
+
+      results.sort(
+        (a,b) =>
+          a.title.localeCompare(b.title)
+      );
+
+    } else {
+
+      results.sort(
+        (a,b) => b.year - a.year
+      );
     }
 
 
-    if (sort.value === "A-Z") {
+    /* Show result */
 
-      games.sort((a,b) =>
-        a.title.localeCompare(b.title)
-      );
+    if (results.length === 0) {
 
-    }
+      grid.innerHTML = `
+        <div style="
+          grid-column:1/-1;
+          padding:50px;
+          text-align:center;
+          color:#aaa;
+        ">
+          <h2>No games found</h2>
+          <p>
+            Try another game name or genre.
+          </p>
+        </div>
+      `;
 
-
-    if (sort.value === "Release Date") {
-
-      games.sort((a,b) =>
-        b.year - a.year
-      );
-
+      return;
     }
 
 
     grid.innerHTML =
-      games.map(card).join("");
-
+      results.map(createCard).join("");
   }
 
 
-  search.oninput = render;
-  genre.onchange = render;
-  sort.onchange = render;
+  /* Search */
 
-  render();
+  search.addEventListener(
+    "input",
+    displayGames
+  );
+
+
+  /* Genre */
+
+  genre.addEventListener(
+    "change",
+    displayGames
+  );
+
+
+  /* Sort */
+
+  sort.addEventListener(
+    "change",
+    displayGames
+  );
+
+
+  /* Initial games */
+
+  displayGames();
 }
 
 
-function detail() {
+/* Game detail page */
+
+function setupDetail() {
 
   const box =
-    document.querySelector("#detail");
+    document.getElementById("detail");
 
   if (!box) return;
 
-  const id =
-    new URLSearchParams(location.search)
-      .get("id");
 
-  const g =
-    GAMES.find(x => x.id === id)
-    || GAMES[0];
+  const id =
+    new URLSearchParams(
+      window.location.search
+    ).get("id");
+
+
+  const game =
+    GAMES.find(
+      g => g.id === id
+    ) || GAMES[0];
 
 
   box.innerHTML = `
 
-    <section class="detail"
-             style="--a:${g.accent}">
+    <section
+      class="detail"
+      style="--a:${game.accent}"
+    >
 
-      <img src="${art(g)}"
-           alt="${g.title}">
+      <img
+        src="${art(game)}"
+        alt="${game.title}"
+      >
 
       <div>
 
         <small>
-          ${g.genre} • ${g.year}
+          ${game.genre} • ${game.year}
         </small>
 
-        <h1>${g.title}</h1>
+        <h1>
+          ${game.title}
+        </h1>
 
         <p>
-          ${g.description}
+          ${game.description}
         </p>
 
         <strong>
-          ★ ${g.rating} &nbsp; EXCELLENT
+          ★ ${game.rating}
+          &nbsp; EXCELLENT
         </strong>
 
       </div>
@@ -217,41 +316,44 @@ function detail() {
 
       <div>
         <b>RELEASE DATE</b>
-        ${g.year}
+        ${game.year}
       </div>
 
       <div>
         <b>DEVELOPER</b>
-        ${g.developer}
+        ${game.developer}
       </div>
 
       <div>
         <b>PUBLISHER</b>
-        ${g.publisher}
+        ${game.publisher}
       </div>
 
       <div>
         <b>GENRE</b>
-        ${g.genre}
+        ${game.genre}
       </div>
 
       <div>
         <b>PLATFORMS</b>
-        ${g.platforms}
+        ${game.platforms}
       </div>
 
     </section>
 
 
     <section class="tabs">
-
-      OVERVIEW &nbsp;&nbsp;
-      STORY &nbsp;&nbsp;
-      GAMEPLAY &nbsp;&nbsp;
-      FEATURES &nbsp;&nbsp;
-      HISTORY &nbsp;&nbsp;
+      OVERVIEW
+      &nbsp;&nbsp;
+      STORY
+      &nbsp;&nbsp;
+      GAMEPLAY
+      &nbsp;&nbsp;
+      FEATURES
+      &nbsp;&nbsp;
+      HISTORY
+      &nbsp;&nbsp;
       GALLERY
-
     </section>
 
 
@@ -262,7 +364,7 @@ function detail() {
         <h2>ABOUT THIS GAME</h2>
 
         <p>
-          ${g.story}
+          ${game.story}
         </p>
 
 
@@ -306,17 +408,23 @@ function detail() {
 
         <h3>QUICK FACTS</h3>
 
-        <p>◆ Released ${g.year}</p>
+        <p>
+          ◆ Released ${game.year}
+        </p>
 
-        <p>◆ ${g.developer}</p>
+        <p>
+          ◆ ${game.developer}
+        </p>
 
-        <p>◆ ${g.genre} game</p>
+        <p>
+          ◆ ${game.genre} game
+        </p>
 
 
         <h3>GAME MODES</h3>
 
         <p>
-          ◉ ${g.modes}
+          ◉ ${game.modes}
         </p>
 
       </aside>
@@ -326,5 +434,7 @@ function detail() {
 }
 
 
-home();
-detail();
+/* Start */
+
+setupHome();
+setupDetail();
