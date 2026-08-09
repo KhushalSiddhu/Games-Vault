@@ -1,21 +1,9 @@
 {
-  "name": "Top Games of Every Month",
-  "short_name": "Top Games",
+  "name": "GameVault",
+  "short_name": "GameVault",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#050711",
-  "theme_color": "#070914",
-  "description": "Gaming database by Khushal Siddhu",
-  "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+  "background_color": "#06060d",
+  "theme_color": "#070711",
+  "description": "Every Game. Every Era."
 }
