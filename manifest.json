@@ -1,9 +1,1 @@
-{
-  "name": "GameVault",
-  "short_name": "GameVault",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#06060d",
-  "theme_color": "#070711",
-  "description": "Every Game. Every Era."
-}
+{"name": "GameVault", "short_name": "GameVault", "start_url": "./index.html", "display": "standalone", "theme_color": "#842dff", "background_color": "#04050b"}
